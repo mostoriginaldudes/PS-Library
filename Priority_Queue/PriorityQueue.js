@@ -12,10 +12,6 @@ class PriorityQueue {
     this.#heapifyUp();
   }
 
-  print() {
-    console.log(this.#heap);
-  }
-
   pop() {
     const result = this.#heap[1];
     this.#heap[1] = null;
@@ -43,13 +39,12 @@ class PriorityQueue {
 
   #heapifyDown() {
     let nodeIndex = 1;
-    const len = this.size();
 
-    while (nodeIndex < len) {
+    while (nodeIndex < this.size()) {
       let leftChildIndex = nodeIndex * 2;
       let rightChildIndex = nodeIndex * 2 + 1;
 
-      if (leftChildIndex > this.size() && rightChildIndex > this.size()) {
+      if (isLastNode.call(this, leftChildIndex, rightChildIndex)) {
         break;
       }
 
@@ -63,17 +58,25 @@ class PriorityQueue {
         this.#swap(nodeIndex, leftChildIndex);
         nodeIndex = leftChildIndex;
       } else {
-        const compareLeftToRight = this.#compare(leftChild, rightChild);
-        if (compareLeftToRight < 0) {
-          this.#swap(nodeIndex, leftChildIndex);
-          nodeIndex = leftChildIndex;
-        } else {
+        if (this.#shouldSwap(leftChild, rightChild)) {
           this.#swap(nodeIndex, rightChildIndex);
           nodeIndex = rightChildIndex;
+        } else {
+          this.#swap(nodeIndex, leftChildIndex);
+          nodeIndex = leftChildIndex;
         }
       }
     }
-    this.#tidyUp(nodeIndex);
+    tidyUp.call(this);
+
+    function isLastNode(leftNodeIndex, rightNodeIndex) {
+      return leftNodeIndex > this.size() && rightNodeIndex > this.size();
+    }
+
+    function tidyUp() {
+      this.#heap[nodeIndex] ?? this.#swap(nodeIndex, this.size());
+      this.#heap.pop();
+    }
   }
 
   #heapifyUp() {
@@ -84,27 +87,23 @@ class PriorityQueue {
       const parentNode = this.#heap[parentIndex];
       const currentNode = this.#heap[nodeIndex];
 
-      const compareCurrentToParent = this.#compare(parentNode, currentNode);
-      if (compareCurrentToParent >= 1) {
-        this.#swap(parentIndex, nodeIndex);
-      }
+      this.#shouldSwap(parentNode, currentNode) && this.#swap(parentIndex, nodeIndex);
       nodeIndex = parentIndex;
     }
   }
 
-  #tidyUp(nodeIndex) {
-    this.#heap[nodeIndex] ?? this.#swap(nodeIndex, this.size());
-    this.#heap.pop();
+  #shouldSwap(a, b) {
+    return this.#compare(a, b) >= 1;
   }
 }
 
-const pq = new PriorityQueue((a, b) => b - a);
+const pq = new PriorityQueue((a, b) => a - b);
 
 pq.push(5);
 pq.print();
-pq.push(3);
-pq.print();
 pq.push(4);
+pq.print();
+pq.push(3);
 pq.print();
 pq.push(2);
 pq.print();
